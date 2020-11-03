@@ -200,6 +200,11 @@ module.exports = {
         context: path.join(__dirname, 'node_modules/fork-awesome'),
         from: 'css',
         to: 'fork-awesome/css'
+      },
+      {
+        context: path.join(__dirname, 'node_modules/@sosml/webworker/build'),
+        from: 'webworker.js',
+        to: 'sosmlwebworker.js'
       }
     ]),
     new MiniCssExtractPlugin()
@@ -399,7 +404,7 @@ module.exports = {
 
   resolve: {
     modules: ['node_modules'],
-    extensions: ['.js'],
+    extensions: ['.js',".ts", ".tsx", ".js"],
     alias: {
       codemirror: path.join(__dirname, 'node_modules/@hackmd/codemirror/codemirror.min.js'),
       inlineAttachment: path.join(__dirname, 'public/vendor/inlineAttachment/inline-attachment.js'),
@@ -437,7 +442,9 @@ module.exports = {
   },
 
   module: {
-    rules: [{
+    rules: [
+      { test: /\.tsx?$/, loader: "ts-loader" },
+      {
       test: /\.mjs$/,
       type: 'javascript/auto'
     }, {

@@ -1,8 +1,13 @@
 /* eslint-env browser, jquery */
 /* global moment, serverurl, plantumlServer, L */
 
+
+
+import InterpreterQueue from './lib/sosml/InterpreterQueue.ts'
+
 import Prism from 'prismjs'
 import hljs from 'highlight.js'
+import sml from 'highlight.js/lib/languages/sml'
 import PDFObject from 'pdfobject'
 import { saveAs } from 'file-saver'
 
@@ -44,10 +49,15 @@ require('prismjs/components/prism-gherkin')
 
 require('./lib/common/login')
 require('../vendor/md-toc')
+
+hljs.registerLanguage("sml",sml)
+
 let viz = new window.Viz()
 const plantumlEncoder = require('plantuml-encoder')
 
 const ui = getUIElements()
+
+const interpreterQueue = new InterpreterQueue()
 
 // auto update last change
 window.createtime = null
@@ -339,6 +349,44 @@ export function finishView (view) {
       console.warn(err)
     }
   })
+    //sosml
+    interpreterQueue.init()
+    const sosml = view.find('div.sosml.raw').removeClass('raw')
+    sosml.each(function (key, value) {
+
+      let $ele = $(value).parent().parent()
+      let code = $(value).text()
+      
+      $ele.html("")
+      $ele.css("padding",0)
+      $ele.css("position","relative")
+
+      let res = hljs.highlight("sml",code)
+      
+      let codeDisplay = $(`<code class="hljs sml sosmlCode">${res.value}</code>`)
+
+      let timeout = 2000
+      
+      if (code.startsWith("(*timeout=")) {
+        timeout = parseInt(code.substring(10))
+        if (isNaN(timeout)){
+          timeout = 2000;
+        } else {
+          timeout = Math.max(timeout,100)
+          timeout = Math.min(timeout, 20000)
+        }
+      }
+
+      let optionDisplay = $(`<div class="sosmlOptionDisplay">timeout:${timeout}ms</div>`)
+
+      let resultWrapper = $('<div class="sosmlResultWrapper"><b>Waiting for Interpreter...</b></div>')
+
+      $ele.append(codeDisplay).append(resultWrapper).append(optionDisplay)
+
+      interpreterQueue.deferInterpretation(code,resultWrapper.get(0),timeout)
+
+    })
+
   // flowchart
   const flow = view.find('div.flow-chart.raw').removeClass('raw')
   flow.each((key, value) => {
@@ -1082,7 +1130,8 @@ const fenceCodeAlias = {
   vega: 'vega',
   geo: 'geo',
   fretboard: 'fretboard_instance',
-  markmap: 'markmap'
+  markmap: 'markmap',
+  sosml:'sosml'
 }
 
 function highlightRender (code, lang) {

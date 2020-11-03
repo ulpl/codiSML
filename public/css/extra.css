@@ -406,3 +406,26 @@ small .dropdown a:focus, small .dropdown a:hover {
         font-size: 12px !important;
     }
 }
+
+.sosmlCode {
+    display:block !important;
+    padding: 12px !important;
+    
+}
+
+
+.sosmlResultWrapper {
+    background:#cce5ff;
+    padding:12px;
+    min-width: 100%;
+    width: fit-content;
+}
+
+.sosmlOptionDisplay {
+    position: absolute;
+    z-index:10;
+    top: 0;
+    right:0;
+    padding: 4px;
+    opacity: 0.5;
+}
